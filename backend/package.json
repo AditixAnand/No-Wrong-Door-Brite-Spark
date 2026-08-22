@@ -5,5 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test 'test/**/*.test.js'"
+  },
+  "dependencies": {
+    "mongodb": "^7.5.0"
   }
 }
