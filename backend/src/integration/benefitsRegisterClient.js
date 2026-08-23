@@ -2,6 +2,7 @@ import { XMLParser } from 'fast-xml-parser';
 import { adaptXmlRecord } from '../adapters/xmlAdapter.js';
 import { fetchWithTimeout, withRetry } from './httpRetry.js';
 import { SourceNotFoundError, SourceHttpError, SourceInvalidResponseError } from './errors.js';
+import { reportCall } from '../health/callEvents.js';
 
 const BASE_URL = process.env.XML_BASE_URL || 'http://127.0.0.1:8082';
 const parser = new XMLParser();
@@ -23,37 +24,48 @@ function parseFault(xmlText) {
 // ingestion, applied per-resident instead of to the whole register.
 async function fetchBenefitsRegisterRecord(sourceId, options = {}) {
   const { fetchImpl = fetch, timeoutMs = 5000, maxAttempts = 3, sleepImpl } = options;
+  const start = Date.now();
+  let lastAttempt = 0;
 
-  return withRetry(
-    async () => {
-      const res = await fetchWithTimeout(`${BASE_URL}/records/${encodeURIComponent(sourceId)}`, {
-        timeoutMs,
-        fetchImpl,
-      });
-      const text = await res.text();
+  try {
+    const record = await withRetry(
+      async (attempt) => {
+        lastAttempt = attempt;
+        const res = await fetchWithTimeout(`${BASE_URL}/records/${encodeURIComponent(sourceId)}`, {
+          timeoutMs,
+          fetchImpl,
+        });
+        const text = await res.text();
 
-      if (res.ok) {
-        let parsed;
-        try {
-          parsed = parser.parse(text);
-        } catch {
-          throw new SourceInvalidResponseError('Benefits Register returned malformed XML');
+        if (res.ok) {
+          let parsed;
+          try {
+            parsed = parser.parse(text);
+          } catch {
+            throw new SourceInvalidResponseError('Benefits Register returned malformed XML');
+          }
+          const rec = parsed?.BenefitsRegister?.Record;
+          if (!rec) {
+            throw new SourceInvalidResponseError('Benefits Register response missing a Record element');
+          }
+          return adaptXmlRecord(rec);
         }
-        const record = parsed?.BenefitsRegister?.Record;
-        if (!record) {
-          throw new SourceInvalidResponseError('Benefits Register response missing a Record element');
-        }
-        return adaptXmlRecord(record);
-      }
 
-      const fault = parseFault(text);
-      if (fault.code === 'SRV-404' || res.status === 404) {
-        throw new SourceNotFoundError(`Resident ${sourceId} not found in Benefits Register`);
-      }
-      throw new SourceHttpError(res.status, `Benefits Register error ${fault.code || res.status}`);
-    },
-    { maxAttempts, sleepImpl, isRetryable: (err) => !(err instanceof SourceNotFoundError) }
-  );
+        const fault = parseFault(text);
+        if (fault.code === 'SRV-404' || res.status === 404) {
+          throw new SourceNotFoundError(`Resident ${sourceId} not found in Benefits Register`);
+        }
+        throw new SourceHttpError(res.status, `Benefits Register error ${fault.code || res.status}`);
+      },
+      { maxAttempts, sleepImpl, isRetryable: (err) => !(err instanceof SourceNotFoundError) }
+    );
+    reportCall({ source: 'benefitsRegister', outcome: 'ok', durationMs: Date.now() - start, attempts: lastAttempt });
+    return record;
+  } catch (err) {
+    const outcome = err instanceof SourceNotFoundError ? 'not_found' : 'unavailable';
+    reportCall({ source: 'benefitsRegister', outcome, durationMs: Date.now() - start, attempts: lastAttempt });
+    throw err;
+  }
 }
 
 export { fetchBenefitsRegisterRecord };

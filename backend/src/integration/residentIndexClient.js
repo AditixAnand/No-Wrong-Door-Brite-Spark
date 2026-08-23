@@ -1,6 +1,7 @@
 import { adaptRestRecord } from '../adapters/restAdapter.js';
 import { fetchWithTimeout, withRetry } from './httpRetry.js';
 import { SourceNotFoundError, SourceHttpError, SourceInvalidResponseError } from './errors.js';
+import { reportCall } from '../health/callEvents.js';
 
 const BASE_URL = process.env.REST_BASE_URL || 'http://127.0.0.1:8081';
 
@@ -10,31 +11,42 @@ const BASE_URL = process.env.REST_BASE_URL || 'http://127.0.0.1:8081';
 // path as every other source — no special-casing.
 async function fetchResidentIndexRecord(sourceId, options = {}) {
   const { fetchImpl = fetch, timeoutMs = 5000, maxAttempts = 3, sleepImpl } = options;
+  const start = Date.now();
+  let lastAttempt = 0;
 
-  return withRetry(
-    async () => {
-      const res = await fetchWithTimeout(`${BASE_URL}/residents/${encodeURIComponent(sourceId)}`, {
-        timeoutMs,
-        fetchImpl,
-      });
+  try {
+    const record = await withRetry(
+      async (attempt) => {
+        lastAttempt = attempt;
+        const res = await fetchWithTimeout(`${BASE_URL}/residents/${encodeURIComponent(sourceId)}`, {
+          timeoutMs,
+          fetchImpl,
+        });
 
-      if (res.status === 404) {
-        throw new SourceNotFoundError(`Resident ${sourceId} not found in Resident Index`);
-      }
-      if (!res.ok) {
-        throw new SourceHttpError(res.status, `Resident Index returned HTTP ${res.status}`);
-      }
+        if (res.status === 404) {
+          throw new SourceNotFoundError(`Resident ${sourceId} not found in Resident Index`);
+        }
+        if (!res.ok) {
+          throw new SourceHttpError(res.status, `Resident Index returned HTTP ${res.status}`);
+        }
 
-      let json;
-      try {
-        json = await res.json();
-      } catch {
-        throw new SourceInvalidResponseError('Resident Index returned malformed JSON');
-      }
-      return adaptRestRecord(json);
-    },
-    { maxAttempts, sleepImpl, isRetryable: (err) => !(err instanceof SourceNotFoundError) }
-  );
+        let json;
+        try {
+          json = await res.json();
+        } catch {
+          throw new SourceInvalidResponseError('Resident Index returned malformed JSON');
+        }
+        return adaptRestRecord(json);
+      },
+      { maxAttempts, sleepImpl, isRetryable: (err) => !(err instanceof SourceNotFoundError) }
+    );
+    reportCall({ source: 'residentIndex', outcome: 'ok', durationMs: Date.now() - start, attempts: lastAttempt });
+    return record;
+  } catch (err) {
+    const outcome = err instanceof SourceNotFoundError ? 'not_found' : 'unavailable';
+    reportCall({ source: 'residentIndex', outcome, durationMs: Date.now() - start, attempts: lastAttempt });
+    throw err;
+  }
 }
 
 export { fetchResidentIndexRecord };
