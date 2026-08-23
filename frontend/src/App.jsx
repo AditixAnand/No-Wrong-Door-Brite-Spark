@@ -32,10 +32,11 @@ function App() {
   }
 
   function goTo(nextView) {
-    // Only reset the open resident when the user explicitly clicks back to
-    // Search — switching to another tab and back should return to exactly
-    // where they left off, not drop their results.
-    if (nextView === 'search') setSelectedId(null);
+    // Switching tabs never changes which resident (if any) is open —
+    // clicking "Search" returns to exactly what was last there, whether
+    // that's the results list or a specific resident's detail page. The
+    // "← Back to search" link inside the detail view is the only way back
+    // to the list.
     setView(nextView);
   }
 
