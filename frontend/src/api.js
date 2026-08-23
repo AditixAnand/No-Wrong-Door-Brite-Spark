@@ -62,4 +62,19 @@ async function getAuditLog() {
   return res.json();
 }
 
-export { searchResidents, getResident, getReviewQueue, decideReviewItem, getHealth, getAuditLog, AuthError };
+async function getReliability() {
+  const res = await authedFetch('/api/reliability');
+  if (!res.ok) throw new Error(`Reliability fetch failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+export {
+  searchResidents,
+  getResident,
+  getReviewQueue,
+  decideReviewItem,
+  getHealth,
+  getAuditLog,
+  getReliability,
+  AuthError,
+};

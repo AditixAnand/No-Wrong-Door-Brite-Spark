@@ -559,3 +559,55 @@
   border-bottom: 1px solid var(--border);
   vertical-align: top;
 }
+
+.reliability-panel h2 {
+  margin: 0 0 4px;
+}
+
+.reliability-panel h3 {
+  margin: 24px 0 10px;
+  font-size: 15px;
+}
+
+.alert-banner {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trend-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.trend-label {
+  width: 140px;
+  font-size: 13px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+}
+
+.trend-bar {
+  width: 8px;
+  border-radius: 2px 2px 0 0;
+}
+
+.trend-empty {
+  font-size: 13px;
+  color: var(--text);
+}

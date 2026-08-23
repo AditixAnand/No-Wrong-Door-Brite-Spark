@@ -3,6 +3,7 @@ import SearchView from './components/SearchView.jsx';
 import ResidentDetail from './components/ResidentDetail.jsx';
 import ReviewQueue from './components/ReviewQueue.jsx';
 import HealthPanel from './components/HealthPanel.jsx';
+import ReliabilityPanel from './components/ReliabilityPanel.jsx';
 import AuditLog from './components/AuditLog.jsx';
 import Login from './components/Login.jsx';
 import { getSession, logout } from './auth.js';
@@ -11,7 +12,7 @@ import './App.css';
 function App() {
   const [session, setSession] = useState(getSession());
   const [selectedId, setSelectedId] = useState(null);
-  const [view, setView] = useState('search'); // 'search' | 'review' | 'health' | 'audit'
+  const [view, setView] = useState('search'); // 'search' | 'review' | 'health' | 'reliability' | 'audit'
 
   if (!session) {
     return (
@@ -62,6 +63,9 @@ function App() {
           <button className={view === 'health' ? 'tab active' : 'tab'} onClick={() => goTo('health')}>
             Source Health
           </button>
+          <button className={view === 'reliability' ? 'tab active' : 'tab'} onClick={() => goTo('reliability')}>
+            Reliability
+          </button>
           {isSupervisor && (
             <button className={view === 'audit' ? 'tab active' : 'tab'} onClick={() => goTo('audit')}>
               Audit Log
@@ -72,6 +76,7 @@ function App() {
       <main>
         {view === 'review' && isSupervisor && <ReviewQueue />}
         {view === 'health' && <HealthPanel />}
+        {view === 'reliability' && <ReliabilityPanel />}
         {view === 'audit' && isSupervisor && <AuditLog />}
         {view === 'search' &&
           (selectedId ? (
