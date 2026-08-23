@@ -6,6 +6,7 @@ import { searchResidents } from './api/search.js';
 import { getReviewQueue, decideReviewItem } from './api/reviewQueue.js';
 import { startCallLogging } from './health/callLog.js';
 import { getHealthSummary } from './health/healthSummary.js';
+import { getReliabilitySummary } from './health/reliabilitySummary.js';
 import { findUser, verifyPassword } from './auth/users.js';
 import { signToken } from './auth/jwt.js';
 import { requireAuth, requireRole } from './auth/middleware.js';
@@ -114,6 +115,18 @@ async function main() {
     asyncRoute(async (req, res) => {
       const summary = await getHealthSummary(db);
       res.json({ sources: summary });
+    })
+  );
+
+  // F14 — Reliability Metrics: success rate over time, retry counts, and a
+  // spike alert. Demonstrated by raising BENEFITS_FAILURE_RATE and watching
+  // the alert trip.
+  app.get(
+    '/api/reliability',
+    requireAuth,
+    asyncRoute(async (req, res) => {
+      const summary = await getReliabilitySummary(db);
+      res.json(summary);
     })
   );
 
