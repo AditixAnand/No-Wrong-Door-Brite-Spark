@@ -1,6 +1,7 @@
 import { fetchResidentIndexRecord } from '../integration/residentIndexClient.js';
 import { fetchBenefitsRegisterRecord } from '../integration/benefitsRegisterClient.js';
 import { aggregateSources } from '../integration/aggregateSources.js';
+import { withCache } from '../cache/sourceCache.js';
 import { titleCase, toDisplayBasis } from './displayFormat.js';
 
 // Blank DOB is currently only possible on the XML side (F1/F3), but this is
@@ -63,9 +64,19 @@ async function getUnifiedResident(db, unifiedId) {
 
   const identity = buildIdentity(restStored || xmlStored);
 
+  // Each call is wrapped with withCache (F9): a fresh cache hit skips the
+  // live source entirely, and if the live call fails, the last known-good
+  // value is served back marked stale rather than losing the section — "the
+  // strongest use of cache in this project" per the spec.
   const sourceCalls = {};
-  if (link.residentIndexId) sourceCalls.residentIndex = () => fetchResidentIndexRecord(link.residentIndexId);
-  if (link.benefitsRegisterId) sourceCalls.benefitsRegister = () => fetchBenefitsRegisterRecord(link.benefitsRegisterId);
+  if (link.residentIndexId) {
+    sourceCalls.residentIndex = () =>
+      withCache('residentIndex', link.residentIndexId, () => fetchResidentIndexRecord(link.residentIndexId));
+  }
+  if (link.benefitsRegisterId) {
+    sourceCalls.benefitsRegister = () =>
+      withCache('benefitsRegister', link.benefitsRegisterId, () => fetchBenefitsRegisterRecord(link.benefitsRegisterId));
+  }
 
   const { sources: liveSources, overallStatus } = await aggregateSources(sourceCalls);
 
@@ -81,13 +92,22 @@ async function getUnifiedResident(db, unifiedId) {
       continue;
     }
     const live = liveSources[key];
+    // live.data is the withCache envelope { data, cached, stale, cacheAgeMs }
+    // on success — aggregateSources treats it as an opaque value, so it's
+    // unwrapped here rather than baking cache-awareness into that generic layer.
+    const envelope = live.data;
     sources[key] = {
-      status: live.status,
+      // The live call actually failed if we're serving a stale fallback —
+      // "ok" would overstate it, "unavailable" would understate the value
+      // of the cached data. "degraded" is what the §2.1 contract's status
+      // enum (ok | degraded | unavailable) exists for.
+      status: envelope?.stale ? 'degraded' : live.status,
       sourceId,
       responseTimeMs: live.responseTimeMs,
-      cached: live.cached,
+      cached: envelope ? envelope.cached : false,
+      ...(envelope?.stale ? { stale: true, cacheAgeMs: envelope.cacheAgeMs } : {}),
       ...(live.error ? { error: live.error } : {}),
-      data: live.data ? live.data.raw : null,
+      data: envelope ? envelope.data.raw : null,
     };
   }
 
