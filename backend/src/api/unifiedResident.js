@@ -78,7 +78,7 @@ async function getUnifiedResident(db, unifiedId) {
       withCache('benefitsRegister', link.benefitsRegisterId, () => fetchBenefitsRegisterRecord(link.benefitsRegisterId));
   }
 
-  const { sources: liveSources, overallStatus } = await aggregateSources(sourceCalls);
+  const { sources: liveSources } = await aggregateSources(sourceCalls);
 
   const sources = {};
   for (const [key, sourceId] of [
@@ -110,6 +110,15 @@ async function getUnifiedResident(db, unifiedId) {
       data: envelope ? envelope.data.raw : null,
     };
   }
+
+  // Recomputed from the final per-source statuses (not aggregateSources'
+  // own overallStatus) because a "degraded" source — serving stale cache
+  // after a live failure — is decided afterward, here, and the top banner
+  // must be honest that a live call actually failed, not report "complete".
+  const sourceStatuses = Object.values(sources).map((s) => s.status);
+  const okCount = sourceStatuses.filter((s) => s === 'ok').length;
+  const overallStatus =
+    okCount === sourceStatuses.length ? 'complete' : okCount === 0 ? 'unavailable' : 'partial';
 
   return {
     unifiedId,
