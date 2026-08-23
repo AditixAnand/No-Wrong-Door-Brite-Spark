@@ -9,6 +9,7 @@ import { getHealthSummary } from './health/healthSummary.js';
 import { findUser, verifyPassword } from './auth/users.js';
 import { signToken } from './auth/jwt.js';
 import { requireAuth, requireRole } from './auth/middleware.js';
+import { recordAuditAsync, getAuditLog } from './audit/auditLog.js';
 
 const PORT = process.env.PORT || 3001;
 
@@ -57,6 +58,8 @@ async function main() {
       if (!resident) {
         return res.status(404).json({ error: 'not_found', unifiedId: req.params.unifiedId });
       }
+      // F13: every resident record access recorded — who, which resident, when.
+      recordAuditAsync(db, { who: req.user.username, action: 'view_resident', unifiedId: req.params.unifiedId });
       res.json(resident);
     })
   );
@@ -91,6 +94,13 @@ async function main() {
         decidedBy: req.user.username,
         reason,
       });
+      // F13: "record review-queue decisions — who linked or rejected which
+      // pair, and why."
+      recordAuditAsync(db, {
+        who: req.user.username,
+        action: decision,
+        details: { residentIndexId, benefitsRegisterId, reason: reason || null },
+      });
       res.json({ ok: true, summary });
     })
   );
@@ -104,6 +114,17 @@ async function main() {
     asyncRoute(async (req, res) => {
       const summary = await getHealthSummary(db);
       res.json({ sources: summary });
+    })
+  );
+
+  // F13 — Audit Logs. Supervisor-only per the F12 permissions table.
+  app.get(
+    '/api/audit-log',
+    requireAuth,
+    requireRole('supervisor'),
+    asyncRoute(async (req, res) => {
+      const entries = await getAuditLog(db);
+      res.json({ entries });
     })
   );
 
