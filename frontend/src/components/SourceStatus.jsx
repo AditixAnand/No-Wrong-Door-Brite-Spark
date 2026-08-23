@@ -50,8 +50,9 @@ function SourceStatus({ sourceKey, source, onRetry, retrying }) {
 
       {isDegraded && (
         <p className="source-note source-stale-note">
-          Live lookup failed{source.error ? ` (${source.error})` : ''} — showing cached data from{' '}
-          {formatAge(source.cacheAgeMs)}.
+          <strong>⚠️ {label} is unavailable{source.error ? ` (${source.error})` : ''}.</strong>
+          <br />
+          Details shown below are from cache memory, last updated {formatAge(source.cacheAgeMs)}.
         </p>
       )}
 

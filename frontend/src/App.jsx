@@ -6,6 +6,7 @@ import HealthPanel from './components/HealthPanel.jsx';
 import ReliabilityPanel from './components/ReliabilityPanel.jsx';
 import AuditLog from './components/AuditLog.jsx';
 import Login from './components/Login.jsx';
+import ThemeToggle from './components/ThemeToggle.jsx';
 import { getSession, logout } from './auth.js';
 import './App.css';
 
@@ -18,7 +19,10 @@ function App() {
     return (
       <div className="app">
         <header>
-          <h1>No Wrong Door — Calder County Unified Resident View</h1>
+          <div className="header-row">
+            <h1>No Wrong Door — Calder County Unified Resident View</h1>
+            <ThemeToggle />
+          </div>
         </header>
         <main>
           <Login onLogin={setSession} />
@@ -45,7 +49,10 @@ function App() {
         <div className="header-row">
           <h1>No Wrong Door — Calder County Unified Resident View</h1>
           <div className="session-info">
-            {session.username} ({session.role}) · <button className="link-button" onClick={handleLogout}>Sign out</button>
+            <ThemeToggle />
+            <span>
+              {session.username} ({session.role}) · <button className="link-button" onClick={handleLogout}>Sign out</button>
+            </span>
           </div>
         </div>
         <nav className="tabs">

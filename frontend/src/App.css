@@ -22,9 +22,26 @@
 }
 
 .session-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   font-size: 13px;
   color: var(--text);
   white-space: nowrap;
+}
+
+.theme-toggle {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-h);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.theme-toggle:hover {
+  background: var(--accent-bg);
 }
 
 .link-button {
