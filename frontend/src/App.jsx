@@ -32,7 +32,10 @@ function App() {
   }
 
   function goTo(nextView) {
-    setSelectedId(null);
+    // Only reset the open resident when the user explicitly clicks back to
+    // Search — switching to another tab and back should return to exactly
+    // where they left off, not drop their results.
+    if (nextView === 'search') setSelectedId(null);
     setView(nextView);
   }
 
@@ -80,17 +83,32 @@ function App() {
           )}
         </nav>
       </header>
+      {/* Every tab's content stays mounted once visited — switching tabs
+          only hides it (display:none), so search results, an open resident,
+          etc. are never lost by navigating away and back. */}
       <main>
-        {view === 'review' && isSupervisor && <ReviewQueue />}
-        {view === 'health' && <HealthPanel />}
-        {view === 'reliability' && <ReliabilityPanel />}
-        {view === 'audit' && isSupervisor && <AuditLog />}
-        {view === 'search' &&
-          (selectedId ? (
-            <ResidentDetail unifiedId={selectedId} onBack={() => setSelectedId(null)} />
-          ) : (
-            <SearchView onSelect={setSelectedId} />
-          ))}
+        <div style={{ display: view === 'search' && !selectedId ? 'block' : 'none' }}>
+          <SearchView onSelect={setSelectedId} />
+        </div>
+        <div style={{ display: view === 'search' && selectedId ? 'block' : 'none' }}>
+          {selectedId && <ResidentDetail unifiedId={selectedId} onBack={() => setSelectedId(null)} />}
+        </div>
+        {isSupervisor && (
+          <div style={{ display: view === 'review' ? 'block' : 'none' }}>
+            <ReviewQueue />
+          </div>
+        )}
+        <div style={{ display: view === 'health' ? 'block' : 'none' }}>
+          <HealthPanel />
+        </div>
+        <div style={{ display: view === 'reliability' ? 'block' : 'none' }}>
+          <ReliabilityPanel />
+        </div>
+        {isSupervisor && (
+          <div style={{ display: view === 'audit' ? 'block' : 'none' }}>
+            <AuditLog />
+          </div>
+        )}
       </main>
     </div>
   );
