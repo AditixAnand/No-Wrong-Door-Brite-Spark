@@ -20,7 +20,7 @@ function buildLinkDocs(resolution) {
 
   const sortedLinked = [...resolution.linked].sort((a, b) => a.rest.sourceId.localeCompare(b.rest.sourceId));
   for (const pair of sortedLinked) {
-    docs.push({ state: 'linked', ...toCandidateDoc(pair) });
+    docs.push({ state: 'linked', ...toCandidateDoc(pair), reviewed: Boolean(pair.reviewed) });
   }
 
   const sortedAmbiguous = [...resolution.ambiguous].sort((a, b) => {

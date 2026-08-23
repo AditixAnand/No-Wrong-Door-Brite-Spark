@@ -79,9 +79,28 @@ const AMBIGUITY_MARGIN = 0.1;
 // left over on each side. Every outcome — including "no match" — is a
 // normal, expected result, not a failure.
 function resolveEntities(restRecords, xmlRecords, options = {}) {
-  const { floor = FLOOR, autoLinkThreshold = AUTO_LINK_THRESHOLD, ambiguityMargin = AMBIGUITY_MARGIN } = options;
+  const {
+    floor = FLOOR,
+    autoLinkThreshold = AUTO_LINK_THRESHOLD,
+    ambiguityMargin = AMBIGUITY_MARGIN,
+    decisions = {},
+  } = options;
+  const { confirmed = [], rejected = [] } = decisions;
 
-  const pairs = buildCandidatePairs(restRecords, xmlRecords);
+  // A supervisor's decision (F5) is never re-litigated by the scoring
+  // algorithm on a later run. Confirmed pairs are pulled out of the normal
+  // pool entirely and linked directly; rejected pairs are removed from the
+  // candidate universe so they can never be re-offered.
+  const confirmedRestIds = new Set(confirmed.map((c) => c.residentIndexId));
+  const confirmedXmlIds = new Set(confirmed.map((c) => c.benefitsRegisterId));
+  const rejectedKeys = new Set(rejected.map((r) => `${r.residentIndexId}::${r.benefitsRegisterId}`));
+
+  const poolRest = restRecords.filter((r) => !confirmedRestIds.has(r.sourceId));
+  const poolXml = xmlRecords.filter((x) => !confirmedXmlIds.has(x.sourceId));
+
+  const pairs = buildCandidatePairs(poolRest, poolXml).filter(
+    (p) => !rejectedKeys.has(`${p.rest.sourceId}::${p.xml.sourceId}`)
+  );
 
   const restCandidates = new Map();
   const xmlCandidates = new Map();
@@ -99,7 +118,7 @@ function resolveEntities(restRecords, xmlRecords, options = {}) {
   const ambiguousXmlIds = new Set();
   const tentative = [];
 
-  for (const r of restRecords) {
+  for (const r of poolRest) {
     const candidates = restCandidates.get(r.sourceId) || [];
     if (candidates.length === 0) continue;
 
@@ -168,16 +187,29 @@ function resolveEntities(restRecords, xmlRecords, options = {}) {
     }
   }
 
-  const restOnly = restRecords.filter((r) => !linkedRestIds.has(r.sourceId) && !ambiguousRestIds.has(r.sourceId));
-  const xmlOnly = xmlRecords.filter((x) => !linkedXmlIds.has(x.sourceId) && !ambiguousXmlIds.has(x.sourceId));
+  const restOnly = poolRest.filter((r) => !linkedRestIds.has(r.sourceId) && !ambiguousRestIds.has(r.sourceId));
+  const xmlOnly = poolXml.filter((x) => !linkedXmlIds.has(x.sourceId) && !ambiguousXmlIds.has(x.sourceId));
+
+  // Splice in supervisor-confirmed pairs directly — they bypass scoring
+  // entirely rather than being re-evaluated against the threshold.
+  const confirmedLinks = [];
+  for (const c of confirmed) {
+    const restRecord = restRecords.find((r) => r.sourceId === c.residentIndexId);
+    const xmlRecord = xmlRecords.find((x) => x.sourceId === c.benefitsRegisterId);
+    if (!restRecord || !xmlRecord) continue; // stale decision referencing a record no longer present
+    const { score, adjustedMax, confidence, basis } = computeMatchScore(restRecord, xmlRecord);
+    confirmedLinks.push({ rest: restRecord, xml: xmlRecord, score, adjustedMax, confidence, basis, reviewed: true });
+  }
+
+  const allLinked = [...linked, ...confirmedLinks];
 
   return {
-    linked,
+    linked: allLinked,
     ambiguous,
     restOnly,
     xmlOnly,
     summary: {
-      linked: linked.length,
+      linked: allLinked.length,
       ambiguous: ambiguous.length,
       restOnly: restOnly.length,
       xmlOnly: xmlOnly.length,

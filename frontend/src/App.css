@@ -9,7 +9,125 @@
 
 .app header h1 {
   font-size: 28px;
-  margin: 0 0 24px;
+  margin: 0 0 16px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tab {
+  background: none;
+  border: none;
+  padding: 8px 4px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tab.active {
+  color: var(--text-h);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+}
+
+.review-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.review-item h3 {
+  margin: 0 0 12px;
+  font-size: 17px;
+}
+
+.review-candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.review-candidate {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.review-compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.review-compare th {
+  text-align: left;
+  padding: 4px 8px;
+  color: var(--text);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.review-compare td {
+  padding: 4px 8px;
+  border-top: 1px solid var(--border);
+}
+
+.field-name {
+  color: var(--text);
+  text-transform: capitalize;
+  width: 110px;
+}
+
+.field-agree {
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.field-disagree {
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.review-score {
+  margin: 10px 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.review-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.confirm-button,
+.reject-button {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.confirm-button {
+  background: #16a34a;
+  color: #fff;
+}
+
+.reject-button {
+  background: none;
+  border: 1px solid #dc2626;
+  color: #dc2626;
+}
+
+.confirm-button:disabled,
+.reject-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .search-form {

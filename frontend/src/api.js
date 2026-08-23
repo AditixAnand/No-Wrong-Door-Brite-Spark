@@ -15,4 +15,20 @@ async function getResident(unifiedId) {
   return res.json();
 }
 
-export { searchResidents, getResident };
+async function getReviewQueue() {
+  const res = await fetch('/api/review-queue');
+  if (!res.ok) throw new Error(`Review queue fetch failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+async function decideReviewItem({ residentIndexId, benefitsRegisterId, decision, decidedBy, reason }) {
+  const res = await fetch('/api/review-queue/decide', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ residentIndexId, benefitsRegisterId, decision, decidedBy, reason }),
+  });
+  if (!res.ok) throw new Error(`Decision failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+export { searchResidents, getResident, getReviewQueue, decideReviewItem };

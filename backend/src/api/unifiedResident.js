@@ -98,6 +98,7 @@ async function getUnifiedResident(db, unifiedId) {
       state: link.state,
       confidence: link.confidence,
       basis: toDisplayBasis(link.basis),
+      reviewed: Boolean(link.reviewed),
     },
     sources,
     dataQuality: buildDataQuality({ xmlStored }),
