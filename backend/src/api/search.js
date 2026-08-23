@@ -13,20 +13,33 @@ async function searchResidents(db, { q = '', page = 1, pageSize = 25 } = {}) {
 
   let linkQuery = {};
   if (query) {
-    const nameRegex = new RegExp(escapeRegex(query.toUpperCase()));
-    const idRegex = new RegExp(escapeRegex(query), 'i');
+    const words = query.split(/\s+/).filter(Boolean);
+
+    // A full "First Last" query can't match firstName or lastName alone —
+    // neither field contains the whole string. Require every word to match
+    // somewhere (name or town) instead, so "Ashley Kessler" finds a record
+    // with firstName ASHLEY and lastName KESSLER even though no single
+    // field holds "ASHLEY KESSLER".
+    const sourceMatchQuery =
+      words.length > 1
+        ? {
+            $and: words.map((word) => {
+              const wordRegex = new RegExp(escapeRegex(word.toUpperCase()));
+              return { $or: [{ firstName: wordRegex }, { lastName: wordRegex }, { town: wordRegex }] };
+            }),
+          }
+        : {
+            $or: [
+              { firstName: new RegExp(escapeRegex(query.toUpperCase())) },
+              { lastName: new RegExp(escapeRegex(query.toUpperCase())) },
+              { town: new RegExp(escapeRegex(query.toUpperCase())) },
+              { sourceId: new RegExp(escapeRegex(query), 'i') },
+            ],
+          };
 
     const [restMatches, xmlMatches] = await Promise.all([
-      db
-        .collection('resident_index')
-        .find({ $or: [{ firstName: nameRegex }, { lastName: nameRegex }, { town: nameRegex }, { sourceId: idRegex }] })
-        .project({ sourceId: 1 })
-        .toArray(),
-      db
-        .collection('benefits_register')
-        .find({ $or: [{ firstName: nameRegex }, { lastName: nameRegex }, { town: nameRegex }, { sourceId: idRegex }] })
-        .project({ sourceId: 1 })
-        .toArray(),
+      db.collection('resident_index').find(sourceMatchQuery).project({ sourceId: 1 }).toArray(),
+      db.collection('benefits_register').find(sourceMatchQuery).project({ sourceId: 1 }).toArray(),
     ]);
 
     const restIds = restMatches.map((r) => r.sourceId);
