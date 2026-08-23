@@ -31,4 +31,10 @@ async function decideReviewItem({ residentIndexId, benefitsRegisterId, decision,
   return res.json();
 }
 
-export { searchResidents, getResident, getReviewQueue, decideReviewItem };
+async function getHealth() {
+  const res = await fetch('/api/health');
+  if (!res.ok) throw new Error(`Health fetch failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+export { searchResidents, getResident, getReviewQueue, decideReviewItem, getHealth };
