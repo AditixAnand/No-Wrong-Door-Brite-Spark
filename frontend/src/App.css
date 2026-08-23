@@ -535,3 +535,27 @@
 .health-unknown td:first-child {
   border-left: 3px solid #9ca3af;
 }
+
+.audit-log h2 {
+  margin: 0 0 16px;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.audit-table th {
+  text-align: left;
+  padding: 8px;
+  font-size: 12px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+
+.audit-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}

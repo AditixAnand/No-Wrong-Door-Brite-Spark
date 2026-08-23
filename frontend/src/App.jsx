@@ -3,6 +3,7 @@ import SearchView from './components/SearchView.jsx';
 import ResidentDetail from './components/ResidentDetail.jsx';
 import ReviewQueue from './components/ReviewQueue.jsx';
 import HealthPanel from './components/HealthPanel.jsx';
+import AuditLog from './components/AuditLog.jsx';
 import Login from './components/Login.jsx';
 import { getSession, logout } from './auth.js';
 import './App.css';
@@ -10,7 +11,7 @@ import './App.css';
 function App() {
   const [session, setSession] = useState(getSession());
   const [selectedId, setSelectedId] = useState(null);
-  const [view, setView] = useState('search'); // 'search' | 'review' | 'health'
+  const [view, setView] = useState('search'); // 'search' | 'review' | 'health' | 'audit'
 
   if (!session) {
     return (
@@ -50,7 +51,7 @@ function App() {
           <button className={view === 'search' ? 'tab active' : 'tab'} onClick={() => goTo('search')}>
             Search
           </button>
-          {/* Review Queue and Source Health are gated per the F12 permissions
+          {/* Review Queue and Audit Log are gated per the F12 permissions
               table — a caseworker's session token wouldn't even be accepted
               by those routes, but hiding the tabs avoids a dead end. */}
           {isSupervisor && (
@@ -61,11 +62,17 @@ function App() {
           <button className={view === 'health' ? 'tab active' : 'tab'} onClick={() => goTo('health')}>
             Source Health
           </button>
+          {isSupervisor && (
+            <button className={view === 'audit' ? 'tab active' : 'tab'} onClick={() => goTo('audit')}>
+              Audit Log
+            </button>
+          )}
         </nav>
       </header>
       <main>
         {view === 'review' && isSupervisor && <ReviewQueue />}
         {view === 'health' && <HealthPanel />}
+        {view === 'audit' && isSupervisor && <AuditLog />}
         {view === 'search' &&
           (selectedId ? (
             <ResidentDetail unifiedId={selectedId} onBack={() => setSelectedId(null)} />

@@ -56,4 +56,10 @@ async function getHealth() {
   return res.json();
 }
 
-export { searchResidents, getResident, getReviewQueue, decideReviewItem, getHealth, AuthError };
+async function getAuditLog() {
+  const res = await authedFetch('/api/audit-log');
+  if (!res.ok) throw new Error(`Audit log fetch failed: HTTP ${res.status}`);
+  return res.json();
+}
+
+export { searchResidents, getResident, getReviewQueue, decideReviewItem, getHealth, getAuditLog, AuthError };
