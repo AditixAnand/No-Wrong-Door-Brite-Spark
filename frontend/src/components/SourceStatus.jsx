@@ -45,6 +45,7 @@ function SourceStatus({ sourceKey, source, onRetry, retrying }) {
           {dot}
         </span>
         <strong>{label}</strong>
+        {source.sourceId && <span className="source-id">{source.sourceId}</span>}
       </div>
 
       {isDegraded && (

@@ -398,6 +398,13 @@
   margin-bottom: 8px;
 }
 
+.source-id {
+  margin-left: auto;
+  font-size: 12px;
+  font-family: var(--mono, monospace);
+  color: var(--text);
+}
+
 .source-field {
   display: flex;
   justify-content: space-between;
