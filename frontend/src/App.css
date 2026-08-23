@@ -306,6 +306,11 @@
   border-left: 4px solid #ef4444;
 }
 
+.source-degraded {
+  border-left: 4px solid #eab308;
+  background: rgba(234, 179, 8, 0.04);
+}
+
 .source-header {
   display: flex;
   align-items: center;
@@ -344,6 +349,27 @@
 
 .source-error {
   color: #dc2626;
+}
+
+.source-stale-note {
+  color: #ca8a04;
+  margin-bottom: 8px;
+}
+
+.retry-button {
+  margin-top: 10px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-h);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.retry-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .data-quality {

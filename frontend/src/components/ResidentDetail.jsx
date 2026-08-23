@@ -19,6 +19,7 @@ function ResidentDetail({ unifiedId, onBack }) {
   const [resident, setResident] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryingKey, setRetryingKey] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,6 +39,21 @@ function ResidentDetail({ unifiedId, onBack }) {
       cancelled = true;
     };
   }, [unifiedId]);
+
+  // F7: "the dashboard ... shows the Benefits section as unavailable with a
+  // retry affordance." A fresh fetch is enough — the backend always attempts
+  // a live call again once the short cache TTL has passed.
+  async function handleRetry(sourceKey) {
+    setRetryingKey(sourceKey);
+    try {
+      const data = await getResident(unifiedId);
+      setResident(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRetryingKey(null);
+    }
+  }
 
   return (
     <div className="resident-detail">
@@ -90,7 +106,13 @@ function ResidentDetail({ unifiedId, onBack }) {
 
           <div className="source-grid">
             {Object.entries(resident.sources).map(([key, source]) => (
-              <SourceStatus key={key} sourceKey={key} source={source} />
+              <SourceStatus
+                key={key}
+                sourceKey={key}
+                source={source}
+                onRetry={() => handleRetry(key)}
+                retrying={retryingKey === key}
+              />
             ))}
           </div>
 
