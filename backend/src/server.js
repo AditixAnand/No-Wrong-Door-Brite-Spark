@@ -4,6 +4,7 @@ import { connectMongo } from './db/mongo.js';
 import { getUnifiedResident } from './api/unifiedResident.js';
 import { searchResidents } from './api/search.js';
 import { getReviewQueue, decideReviewItem } from './api/reviewQueue.js';
+import { startCallLogging } from './health/callLog.js';
 
 const PORT = process.env.PORT || 3001;
 
@@ -15,6 +16,7 @@ function asyncRoute(handler) {
 
 async function main() {
   const db = await connectMongo();
+  startCallLogging(db);
   const app = express();
   app.use(cors());
   app.use(express.json());
