@@ -61,7 +61,7 @@ function ReliabilityPanel() {
 
       {activeAlerts.length > 0 && (
         <div className="alert-banner">
-          🚨 {activeAlerts.map(([source, a]) => (
+          {activeAlerts.map(([source, a]) => (
             <span key={source}>
               {SOURCE_LABELS[source] || source} failure rate spiked to {(a.recentFailureRate * 100).toFixed(0)}%
               (was {(a.priorFailureRate * 100).toFixed(0)}%).
