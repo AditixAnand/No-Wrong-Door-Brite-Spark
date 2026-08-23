@@ -9,7 +9,87 @@
 
 .app header h1 {
   font-size: 28px;
-  margin: 0 0 16px;
+  margin: 0;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.session-info {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+
+.login-view {
+  display: flex;
+  justify-content: center;
+  padding-top: 60px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.login-form h2 {
+  margin: 0 0 8px;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.login-form input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 15px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.login-form button {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.login-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-hint {
+  font-size: 12px;
+  color: var(--text);
+  margin-top: 8px;
 }
 
 .tabs {

@@ -72,7 +72,6 @@ function ReviewQueue() {
         residentIndexId: candidate.residentIndexId,
         benefitsRegisterId: candidate.benefitsRegisterId,
         decision,
-        decidedBy: 'supervisor',
       });
       await load();
     } catch (err) {
