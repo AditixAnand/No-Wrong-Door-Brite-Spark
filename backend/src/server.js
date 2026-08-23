@@ -5,6 +5,7 @@ import { getUnifiedResident } from './api/unifiedResident.js';
 import { searchResidents } from './api/search.js';
 import { getReviewQueue, decideReviewItem } from './api/reviewQueue.js';
 import { startCallLogging } from './health/callLog.js';
+import { getHealthSummary } from './health/healthSummary.js';
 
 const PORT = process.env.PORT || 3001;
 
@@ -64,6 +65,16 @@ async function main() {
       }
       const summary = await decideReviewItem(db, { residentIndexId, benefitsRegisterId, decision, decidedBy, reason });
       res.json({ ok: true, summary });
+    })
+  );
+
+  // F11 — Source Health Monitoring, driven by the call log every live
+  // source client call reports into (see health/callEvents.js).
+  app.get(
+    '/api/health',
+    asyncRoute(async (req, res) => {
+      const summary = await getHealthSummary(db);
+      res.json({ sources: summary });
     })
   );
 
