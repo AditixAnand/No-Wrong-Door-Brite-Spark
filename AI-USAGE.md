@@ -1,6 +1,6 @@
 # AI Usage — No Wrong Door
 
-AI was used during the development of this project as an assistance tool, mainly for frontend development and debugging.
+AI was used during the development of this project as a development assistant, mainly for frontend development and debugging.
 
 I used Claude and ChatGPT at different points when I was stuck on an issue, wanted to understand an error, or needed another approach to a particular problem.
 
@@ -41,7 +41,7 @@ For example, while working on the matching logic, I found that the first version
 
 Sometimes I also used AI to understand a particular error, library behaviour, or implementation issue before making the change myself.
 
-It was mainly used in a question-and-debugging style rather than asking it to build complete features.
+It was mainly used when I needed help understanding what was going wrong or when I wanted to check another possible approach.
 
 ## Tools Used
 
